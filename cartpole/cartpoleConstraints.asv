@@ -1,0 +1,60 @@
+%constraint function for fmincon
+function [C,Ceq] = cartpoleConstraints(optimvars,h,params)
+C = 0;  %no inequalities
+
+%optimvars should be 4xN
+%rows are [x; theta; f; tau] -- in this system, tau = 0 for all t because
+%there is no torque
+%columns correspond to time
+
+%split up optimvars into position states and control inputs
+qd = optimvars(1:2,:);
+fd = optimvars(3:4,:);
+qsize = size(qd);
+N = qsize(2);
+
+%initial and final positions
+qi = [0; 1e-2];
+qf = [0; pi];
+qdoti = [0; 0]; %also need initial velocities
+qdotf = [0; 0]; %final velocities
+IC = [qi; qdoti];
+
+%calculate left and right discrete forces
+f0left = (h./4).*(fd(:,1) + fd(:,2));
+fpenul = (h./4).*(fd(:,end-1) + fd(:,end));
+    previousf = fd(:,1:end-2);
+    currentf = fd(:,2:end-1);
+    nextf = fd(:,3:end);
+fleft = (h./4).*(currentf+nextf);   %this is f_{k}^{-}
+fright = (h./4).*(currentf+previousf);  %this is f_{k-1}^{+}
+
+% %calculate the q's
+% previousq = qd(:,1:end-2);
+% currentq = qd(:,2:end-1);
+% nextq = qd(:,3:end);
+
+%the position states at the beginning and end must match the specified
+%initial and final states
+Ceq(1:2,:) = qd(:,1) - qi;    
+Ceq(3:4,:) = qd(:,end) - qf;
+
+%discrete momentum boundary condition at the initial time
+Ceq(5:6,:) = cartpoleD2L(qd(:,1),qdoti,params) + cartpoleD1Ld(qd(:,1),qd(:,2),h,params) + f0left;
+
+%discrete momentum boundary condition at the final time
+Ceq(7:8,:) = -cartpoleD2L(qd(:,end),qdotf,params) + cartpoleD2Ld(qd(:,end-1),qd(:,end)) + fpenul;
+
+% %forced discrete Euler-Lagrange equations
+% Ceq(7:8,:) = cartpoleD2Ld(previousq,currentq,h,params) + cartpoleD1Ld(currentq,nextq,h,params) + fright + fleft;
+
+%forced discrete Euler-Lagrange equations
+    for k = 2:N-1
+        qprev = qd(:,k-1);
+        qcurr = qd(:,k);
+        qnext = qd(:,k+1);
+        fleft = 
+        Ceq(8+k:8+k+1,:) = cartpoleD2Ld(qprev,qcurr,h,params) + cartpoleD1Ld(qcurr,qnext,h,params)
+    end
+
+end

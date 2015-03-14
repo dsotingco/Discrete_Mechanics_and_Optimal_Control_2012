@@ -1,0 +1,91 @@
+function u = acrobotControl(states,params)
+%unpack params
+m1 = params.m1;
+m2 = params.m2;
+I1 = params.I1;
+I2 = params.I2;
+l1 = params.l1;
+l2 = params.l2;
+lc1 = params.lc1;
+lc2 = params.lc2;
+g = params.g;
+
+%unpack states
+theta1 = states(1);
+theta2 = states(2);
+theta1dot = states(3);
+theta2dot = states(4);
+
+rho = 10;    %threshold below which the controller switches to LQR
+statesd = [pi; 0; 0; 0];
+statestilda = states - statesd;
+
+        %point to linearize about
+        theta1e = pi;
+        theta2e = 0;
+        theta1dote = 0;
+        theta2dote = 0;
+
+        %build inertia matrix
+        H(1,1) = I1 + I2 + m2.*l1.^2 + 2.*m2.*l1.*lc2.*cos(theta2e);
+        H(1,2) = I2 + m2.*l1.*lc2.*cos(theta2e);
+        H(2,1) = I2 + m2.*l1.*lc2.*cos(theta2e);
+        H(2,2) = I2;
+
+        %build Coriolis matrix
+        C(1,1) = -2.*m2.*l1.*lc2.*theta2dote.*sin(theta2e);
+        C(1,2) = -m2.*l1.*lc2.*theta2dote.*sin(theta2e);
+        C(2,1) = m2.*l1.*lc2.*theta1dote.*sin(theta2e);
+        C(2,2) = 0;
+
+        %build gravity matrix
+        G(1,1) = m1.*g.*lc1.*sin(theta1e) + m2.*g.*(l1.*sin(theta1e) + lc2.*sin(theta1e+theta2e));
+        G(2,1) = m2.*g.*lc2.*sin(theta1e+theta2e);
+
+        %build input shaping matrix
+        Bd = [0; 1];
+
+        dGdq(1,1) = -g.*(m1.*lc1 + m2.*l1 + m2.*lc2);
+        dGdq(1,2) = -m2.*g.*lc2;
+        dGdq(2,1) = -m2.*g.*lc2;
+        dGdq(2,2) = -m2.*g.*lc2;
+
+        %linearize
+        A(1:2,1:2) = 0;
+        A(1:2,3:4) = eye(2);
+        A(3:4,1:2) = -H\dGdq;
+        A(3:4,3:4) = -H\C;
+
+        B = zeros(4,1);
+        B(3:4) = H\Bd;
+
+    if statestilda'*eye(4)*statestilda<rho
+        %acrobot LQR
+        Q = 20.*eye(4);
+        R = 1;
+        
+        %lqr
+        [K,S,E] = lqr(A,B,Q,R);
+
+        u = -K*statestilda;
+    else
+        %energy shaping
+        ke = 1;    %energy
+        kp = 1;    %proportional 
+        kd = 1;     %derivative 
+        
+        Ed = m1.*g.*lc1 + m2.*g.*(l1+lc2);
+        KE = 0.5.*I1.*theta1dot.^2 + 0.5.*(m2.*l1.^2+I2+2.*m2.*l1.*lc2.*cos(theta2)).*theta1dot.^2 + 0.5.*I2.*theta2dot.^2 + (I2 + m2.*l1.*lc2.*cos(theta2)).*theta1dot.*theta2dot;
+        PE = -m1.*g.*lc1.*cos(theta1) - m2.*g.*(l1.*cos(theta1) + lc2.*cos(theta1+theta2));
+        E = KE + PE;
+        Etilda = E - Ed;
+        
+        %control law
+        ubar = ke.*theta1dot.*Etilda - kp.*theta2 - kd.*theta2dot;
+        phi1 = C(1,1).*theta1dot + C(1,2).*theta2dot + G(1,1);
+        phi2 = C(2,1).*theta1dot + C(2,2).*theta2dot + G(2,1);
+%         u = (H(2,2) - H(2,1)*H(1,1)\H(1,2))*ubar - H(2,1)*H(1,1)\phi1 + phi2;
+u = ubar;
+        
+    end
+end

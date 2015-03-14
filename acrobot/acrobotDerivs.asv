@@ -1,0 +1,29 @@
+function res = acrobotDerivs(t,states,f,params)
+%unpack params
+m1 = params.m1;
+m2 = params.m2;
+I1 = params.I1;
+I2 = params.I2;
+l1 = params.l1;
+l2 = params.l2;
+lc1 = params.lc1;
+lc2 = params.lc2;
+
+%unpack states
+theta1 = states(1);
+theta2 = states(2);
+theta1dot = states(3);
+theta2dot = states(4);
+
+q = [theta1; theta2];
+qdot = [theta1dot; theta2dot];
+
+%build inertia matrix
+H(1,1) = I1 + I2 + m2.*l1.^2 + 2.*m2.*l1.*lc2.*cos(theta2);
+H(1,2) = I2 + m2.*l1.*lc2.*cos(theta2);
+H(2,1) = I2 + m2.*l1.*lc2.*cos(theta2);
+H(2,2) = I2;
+
+%build Coriolis matrix
+C(1,1) = -2.*m2.*l1.*lc2.*
+end

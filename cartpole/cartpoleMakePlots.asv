@@ -1,0 +1,71 @@
+%make plots
+
+%%
+clear all;
+close all;
+
+load optimTraj3;
+load dircolTraj1;
+
+figure;
+hold on;
+plot(tcp,optimInitGuess(1,:),'ko-','LineWidth',2);
+plot(tcp,dircolTraj(1,:),'b.-','LineWidth',2);
+plot(tcp,optimTraj(1,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Cartpole Position x');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+figure;
+hold on;
+plot(tcp,optimInitGuess(2,:),'ko-','LineWidth',2);
+plot(tcp,dircolTraj(2,:),'b.-','LineWidth',2);
+plot(tcp,optimTraj(2,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Cartpole Angle theta');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+figure;
+hold on;
+plot(tcp,optimInitGuess(5,:),'ko-','LineWidth',2);
+plot(tcp,dircolTraj(5,:),'b.-','LineWidth',2);
+plot(tcp,optimTraj(3,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Control Effort');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+disp(['Dircol cost: ' num2str()]);
+
+%%
+clear all;
+close all
+
+load optimTraj4;
+load dircolTraj2;
+
+figure;
+hold on;
+plot(tcp,optimInitGuess(1,:),'ko-','LineWidth',2);
+plot(tcp,dircolTraj(1,:),'b.-','LineWidth',2);
+plot(tcp,optimTraj(1,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Cartpole Position x');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+figure;
+hold on;
+plot(tcp,optimInitGuess(2,:),'ko-','LineWidth',2);
+plot(tcp,dircolTraj(2,:),'b.-','LineWidth',2);
+plot(tcp,optimTraj(2,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Cartpole Angle theta');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+figure;
+hold on;
+plot(tcp,optimInitGuess(5,:),'ko-','LineWidth',2);
+plot(tcp,dircolTraj(5,:),'b.-','LineWidth',2);
+plot(tcp,optimTraj(3,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Control Effort');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');

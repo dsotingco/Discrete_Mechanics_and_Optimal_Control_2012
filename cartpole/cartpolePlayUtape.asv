@@ -1,0 +1,72 @@
+function [tnew,y] = cartpolePlayUtape(t,u)
+
+%time
+h = 1e-3;
+t0 = t(1);
+tf = t(end);
+tnew = t0:h:tf;
+N = length(tnew);
+
+%pack params
+params.mc = 1;
+params.mp = 1;
+params.l = 1;
+params.g = 9.8;
+
+%initial conditions - state is [x; theta; xdot; thetadot]
+IC = [0; 1e-2; 0; 0];
+
+%RK4
+states = zeros(4,N);
+states(:,1) = IC;
+statescl = zeros(4,N);
+statescl(:,1) = IC;
+unew = zeros(1,N);  %interpolated control
+ucl = zeros(1,N);   %closed-loop control
+for index = 1:length(tnew)-1
+    unew(index) = interp1(t,u,tnew(index));
+    ucl(index) = cartPoleControl(states(:,index),params);
+    
+    k1 = h.*cartpoleDerivsUtape(tnew(index),states(:,index),params,unew(index));
+    k2 = h.*cartpoleDerivsUtape(tnew(index)+0.5.*h,states(:,index)+0.5.*k1,params,unew(index));
+    k3 = h.*cartpoleDerivsUtape(tnew(index)+0.5.*h,states(:,index)+0.5.*k2,params,unew(index));
+    k4 = h.*cartpoleDerivsUtape(tnew(index)+h,states(:,index)+k3,params,unew(index));
+    states(:,index+1) = states(:,index) + (1/6).*(k1 + 2.*k2 + 2.*k3 + k4);
+    
+    k1cl = h.*cartpoleDerivsUtape(tnew(index),statescl(:,index),params,ucl(index));
+    k2cl = h.*cartpoleDerivsUtape(tnew(index)+0.5.*h,statescl(:,index)+0.5.*k1cl,params,ucl(index));
+    k3cl = h.*cartpoleDerivsUtape(tnew(index)+0.5.*h,statescl(:,index)+0.5.*k2cl,params,ucl(index));
+    k4cl = h.*cartpoleDerivsUtape(tnew(index)+h,statescl(:,index)+k3,params,ucl(index));
+    statescl(:,index+1) = statescl(:,index) + (1/6).*(k1cl + 2.*k2cl + 2.*k3cl + k4cl);
+%     k1 = h.*cartpoleDerivs(t(index),states(:,index),params);
+%     k2 = h.*cartpoleDerivs(t(index)+0.5.*h,states(:,index)+0.5.*k1,params);
+%     k3 = h.*cartpoleDerivs(t(index)+0.5.*h,states(:,index)+0.5.*k2,params);
+%     k4 = h.*cartpoleDerivs(t(index)+h,states(:,index)+k3,params);
+%     states(:,index+1) = states(:,index) + (1/6).*(k1 + 2.*k2 + 2.*k3 + k4);
+end
+y  = states;
+
+figure;
+hold on;
+plot(tnew,unew,'bo');
+plot(tnew,ucl,'r.-');
+xlabel('Time');
+ylabel('Control Input');
+legend('Interpolated Control','Closed-loop Control');
+
+figure;
+hold on;
+plot(tnew,statescl(1,:),'k.-','LineWidth',2);
+xlabel('Time');
+ylabel('Cart Position x');
+
+figure;
+hold on;
+plot(tnew,statescl(2,:),'k.-','LineWidth',2);
+xlabel('Time');
+ylabel('Cart Angle theta');
+
+% options = odeset;
+% [t,y] = ode45(@cartpoleDerivsUtape,t,IC,options,params);
+
+end

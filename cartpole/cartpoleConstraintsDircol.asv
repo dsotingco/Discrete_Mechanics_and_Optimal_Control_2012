@@ -1,0 +1,53 @@
+%constraint function for fmincon
+function [C,Ceq] = cartpoleConstraintsDircol(optimvars,t,params)
+C = 0;  %no inequalities
+
+h = t(2) - t(1);
+
+%optimvars should be 3xN
+%rows are [x; theta; f] 
+%columns correspond to time
+
+%split up optimvars into position states and control inputs
+qd = optimvars(1:2,:);
+    qsize = size(qd);
+    N = qsize(2);
+fd = zeros(2,N);
+fd(1,:) = optimvars(3,:);
+
+
+%initial and final positions
+qi = [0; 1e-2];
+qf = [0; pi];
+% qi = qd(:,1);
+% qf = qd(:,end);
+qdoti = [0; 0]; %also need initial velocities
+qdotf = [0; 0]; %final velocities
+IC = [qi; qdoti];
+
+%calculate left and right discrete forces
+f0left = (h./4).*(fd(:,1) + fd(:,2));
+fpenul = (h./4).*(fd(:,end-1) + fd(:,end));
+    previousf = fd(:,1:end-2);
+    currentf = fd(:,2:end-1);
+    nextf = fd(:,3:end);
+fleft = (h./4).*(currentf+nextf);   %this is f_{k}^{-}
+fright = (h./4).*(currentf+previousf);  %this is f_{k-1}^{+}
+
+% %calculate the q's
+% previousq = qd(:,1:end-2);
+% currentq = qd(:,2:end-1);
+% nextq = qd(:,3:end);
+
+%the position states at the beginning and end must match the specified
+%initial and final states
+Ceq(1:2,:) = qd(:,1) - qi;    
+Ceq(3:4,:) = qd(:,end) - qf;
+
+rowIndex = 5;
+for k = 1:N-1
+    qd(:,k+1) = qd(:,k) + h.*cartpoleDerivsUtape(t(k),qd(:,k),params,
+    rowIndex = rowIndex + 2;
+end
+
+end

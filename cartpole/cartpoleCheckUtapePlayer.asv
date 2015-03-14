@@ -1,0 +1,7 @@
+%check the cartpolePlayUtape.m
+
+load cartpoleTraj3;
+
+[tcheck,ycheck] = cartpolePlayUtape(ucp);
+
+figur

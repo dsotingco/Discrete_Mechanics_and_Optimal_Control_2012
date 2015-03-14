@@ -1,0 +1,46 @@
+%make plots for acrobot
+
+%%
+%initial guess of zeros, 10 iterations
+clear all;
+close all;
+
+load dircolguesszero10;
+load dmocguesszero10;
+
+%plot q1
+figure;
+hold on;
+plot(tab,dircolInitGuess(1,:),'ko-','LineWidth',2);
+plot(tab,dircolTraj(1,:),'bd-','LineWidth',2);
+plot(tab,optimTraj(1,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Acrobot Angle q1');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+figure;
+hold on;
+plot(tab,dircolInitGuess(1,:),'ko-','LineWidth',2);
+plot(tab,dircolTraj(1,:),'bd-','LineWidth',2);
+plot(tab,optimTraj(1,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Acrobot Angle q1');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+figure;
+hold on;
+plot(tab,dircolInitGuess(1,:),'ko-','LineWidth',2);
+plot(tab,dircolTraj(1,:),'bd-','LineWidth',2);
+plot(tab,optimTraj(1,:),'r.-','LineWidth',2);
+xlabel('Time');
+ylabel('Acrobot Angle q1');
+legend('Initial Guess','Dircol Trajectory','DMOC Trajectory');
+
+%% 
+%initial guess of energy, 10 iterations
+
+%%
+%initial guess of zeros, 100 iterations
+
+%% 
+%initial guess of energy, 100 iterations
